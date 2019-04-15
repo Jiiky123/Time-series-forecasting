@@ -79,14 +79,14 @@ merged_feat_train = pd.read_csv('merged_feat_train.csv', sep=',', index_col=0)
 
 # make a df with store as column and weekly sales as rows
 stores_df = merged_feat_train[['Store', 'Dept', 'Weekly_Sales']]
-stores_df = stores_df.pivot_table(values='Weekly_Sales', index=stores_df.index, columns='Store')
+stores_df = stores_df.pivot_table(values='Weekly_Sales',
+                                  index=stores_df.index, columns='Store')
 stores_df.index = pd.to_datetime(stores_df.index, format="%Y/%m/%d")
-
 
 stores_train = stores_df.iloc[:102]
 stores_train.index = pd.DatetimeIndex(stores_train.index.values,
                                       freq=stores_train.index.inferred_freq)
-stores_test = stores_df.iloc[102:len(stores_df)-1]
+stores_test = stores_df.iloc[102:len(stores_df)]
 
 
 def plot_stores():
@@ -95,14 +95,20 @@ def plot_stores():
 
 
 def predict_all_stores():
-    predicted_stores = pd.DataFrame(columns=range(1, 45))
-    for store in range(len(stores_df.columns)):
-        model = SARIMAX(stores_train.iloc[:, store], order=(0, 1, 0), seasonal_order=(1, 0, 0, 52))
+    predicted_stores = pd.DataFrame(columns=range(1, 46))
+    for store in range(1, len(stores_df.columns)+1):
+        model = SARIMAX(stores_train.iloc[:, store-1], order=(0, 1, 0),
+                        seasonal_order=(1, 0, 0, 52))
         model_fit = model.fit(disp=False)
-        yhat = pd.DataFrame(model_fit.predict(len(stores_train), len(stores_df)-1, typ='levels'))
+        yhat = pd.DataFrame(model_fit.predict(len(stores_train),
+                                              len(stores_df)-1, typ='levels'))
         predicted_stores[store] = yhat[0]
+        print(store, '/', len(stores_df.columns+1))
     predicted_stores.to_csv('predicted_stores.csv')
     print('saved')
+
+
+predict_all_stores()
 
 
 # ------------------------------------------------------------------------------
@@ -110,21 +116,30 @@ def predict_all_stores():
 # PLOT SARIMA PRED VS ACTUAL ----------------------------------------------
 
 predictions = pd.read_csv('predicted_stores.csv', sep=',', index_col=0)
-predictions = predictions.rename(columns={'0': '45'})
+# predictions = predictions.rename(columns={'0': '45'})
 predictions.index = pd.to_datetime(predictions.index, format="%Y/%m/%d")
 
 # optimistic / pessimistic predictions
 predictions_best_perf = pd.Series([(predictions.iloc[-1, store]-predictions.iloc[0, store]) /
-                                   predictions.iloc[0, store] for store in range(len(predictions.columns))])
+                                   predictions.iloc[0, store]
+                                   for store in range(len(predictions.columns))])
 predictions_best_perf.index = np.arange(1, len(predictions_best_perf)+1)
 print(predictions_best_perf.sort_values())
 
 
 def plot_predictions_vs_actual():  # plotterinho
-    for i in range(len(predictions)):
+    for i in range(len(predictions.columns)):
         plt.plot(predictions.iloc[:, i], c='r')
-        plt.plot(stores_test.iloc[:, i+1], c='b')
+        plt.plot(stores_test.iloc[:, i], c='b')
         plt.show()
+
+
+plot_predictions_vs_actual()
+print(predictions)
+print(stores_test)
+
+
+# plot_predictions_vs_actual()
 
 
 # --------------------------------------------------------------------------------
