@@ -105,7 +105,9 @@ def predict_all_stores():
     print('saved')
 
 
-# predict_all_stores()
+# ------------------------------------------------------------------------------
+
+# PLOT SARIMA PRED VS ACTUAL ----------------------------------------------
 
 predictions = pd.read_csv('predicted_stores.csv', sep=',', index_col=0)
 predictions = predictions.rename(columns={'0': '45'})
@@ -117,21 +119,12 @@ predictions_best_perf = pd.Series([(predictions.iloc[-1, store]-predictions.iloc
 predictions_best_perf.index = np.arange(1, len(predictions_best_perf)+1)
 print(predictions_best_perf.sort_values())
 
-# predictions.plot()
-# plt.tight_layout()
-# plt.show()
 
-# predictions.iloc[:, 10].plot()
-# # stores_df.iloc[:, 30].plot()
-# stores_test.iloc[:, 11].plot()
-# plt.show()
-
-
-def plot_predictions():
+def plot_predictions_vs_actual():  # plotterinho
     for i in range(len(predictions)):
         plt.plot(predictions.iloc[:, i], c='r')
         plt.plot(stores_test.iloc[:, i+1], c='b')
         plt.show()
 
 
-plot_predictions()
+# --------------------------------------------------------------------------------
