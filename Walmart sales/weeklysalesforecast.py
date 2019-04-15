@@ -11,11 +11,19 @@ from sklearn.metrics import mean_squared_error
 import os
 os.chdir('D:/PythonProjektATOM/Git/Repositories/Time-series-forecasting/Walmart sales/')
 
+# importing prediction_df whick includes aggregated sales
 prediction_df = pd.read_csv('prediction_df.csv', sep=',', header=None, index_col=0)
 
 prediction_df.index.name = 'ds'
 prediction_df.columns = ['y']
 prediction_df.index = pd.to_datetime(prediction_df.index, format="%Y/%m/%d")
+
+# importing merged_feat_train dataset which includes store/dept sales
+merged_feat_train = pd.read_csv('merged_feat_train.csv', sep=',', index_col=0)
+print(merged_feat_train.head())
+
+
+# SARIMAX AGG. SALES FORECAST -----------------------------------------------
 
 # test & train
 train_df = prediction_df.iloc[:80]
@@ -48,7 +56,7 @@ def plot_result():  # out of sample result
     plt.show()
 
 
-# FB PROPHET FORECAST
+# FB PROPHET AGG. SALES FORECAST -----------------------------------------------
 train_series = train_series.reset_index()
 
 # fit prophet model
