@@ -54,6 +54,7 @@ test_df['Date'] = pd.to_datetime(test_df['Date'], format="%Y/%m/%d")
 merged_feat_train = pd.merge(train_df, features_df, on=['Date', 'Store'])
 merged_feat_train = merged_feat_train.drop(columns=['IsHoliday_x', 'IsHoliday_y',
                                                     'MarkDown1', 'MarkDown2', 'MarkDown3', 'MarkDown4', 'MarkDown5'])
+merged_feat_train = merged_feat_train.iloc[:50000]
 
 
 # set date as index
@@ -81,13 +82,19 @@ def print_shape():
 
 
 def quick_analysis():  # quick dirty visual analysis
-    scatter_matrix(merged_feat_train, alpha=0.2, figsize=(12, 12))
+    scatter_matrix(merged_feat_train, alpha=0.2, figsize=(12, 8), diagonal='kde')
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_hist():
+    merged_feat_train.hist()
     plt.show()
 
 
 print(merged_feat_train.info())
-
-merged_feat_train.to_csv('merged_feat_train.csv')
+plot_hist()
+# merged_feat_train.to_csv('merged_feat_train.csv')
 
 
 # def store_sales_plot(start, end):  # weekly sales by store

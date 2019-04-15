@@ -18,6 +18,7 @@ prediction_df.index.name = 'ds'
 prediction_df.columns = ['y']
 prediction_df.index = pd.to_datetime(prediction_df.index, format="%Y/%m/%d")
 
+
 # SARIMAX AGG. SALES FORECAST -----------------------------------------------
 
 # test & train
@@ -72,8 +73,9 @@ def prophet_results():  # plot results
 
 # ----------------------------------------------------------------------------
 
+# SALES BY STORE AND DEPARTMENT -------------------------------------------
 
-# SALES BY STORE AND DEPARTMENT
+
 # importing merged_feat_train dataset which includes store/dept sales
 merged_feat_train = pd.read_csv('merged_feat_train.csv', sep=',', index_col=0)
 print(merged_feat_train.head())
