@@ -50,11 +50,19 @@ features_df['Date'] = pd.to_datetime(features_df['Date'], format="%Y/%m/%d")
 train_df['Date'] = pd.to_datetime(train_df['Date'], format="%Y/%m/%d")
 test_df['Date'] = pd.to_datetime(test_df['Date'], format="%Y/%m/%d")
 
+# merged dataset on date and store columns
+merged_feat_train = pd.merge(train_df, features_df, on=['Date', 'Store'])
+merged_feat_train = merged_feat_train.drop(columns=['IsHoliday_x', 'IsHoliday_y',
+                                                    'MarkDown1', 'MarkDown2', 'MarkDown3', 'MarkDown4', 'MarkDown5'])
+
+
 # set date as index
+merged_feat_train = merged_feat_train.set_index('Date')
 features_df = features_df.set_index('Date')
 train_df = train_df.set_index('Date')
 test_df = test_df.set_index('Date')
 
+merged_feat_train.sort_values(['Date', 'Store'], inplace=True)
 features_df.sort_values('Date', inplace=True)
 train_df.sort_values('Date', inplace=True)
 test_df.sort_values('Date', inplace=True)
@@ -63,12 +71,23 @@ test_df.sort_values('Date', inplace=True)
 prediction_df = train_df.groupby('Date').sum().sort_values('Date')
 prediction_df = prediction_df['Weekly_Sales']
 
-print(prediction_df.head())
-print(features_df.shape)
-print(train_df.shape)
-print(stores_df.shape)
 
-prediction_df.to_csv('prediction_df.csv')
+def print_shape():
+    print(merged_feat_train.shape)
+    print(prediction_df.shape)
+    print(features_df.shape)
+    print(train_df.shape)
+    print(stores_df.shape)
+
+
+def quick_analysis():  # quick dirty visual analysis
+    scatter_matrix(merged_feat_train, alpha=0.2, figsize=(12, 12))
+    plt.show()
+
+
+print(merged_feat_train.info())
+
+merged_feat_train.to_csv('merged_feat_train.csv')
 
 
 # def store_sales_plot(start, end):  # weekly sales by store
@@ -78,18 +97,3 @@ prediction_df.to_csv('prediction_df.csv')
 #         plt.plot(store_sales.index, store_sales.Weekly_Sales)
 #
 #     plt.show()
-#
-#
-# def seasonal_plot():  # seasonal plot
-#     sales_seasonal = seasonal_decompose(all_store_sales.Weekly_Sales, freq=4)
-#     sales_seasonal.plot()
-#     plt.show()
-
-# scatter_matrix(features_df.iloc[:, 2:9], alpha=0.2, figsize=(12, 8), diagonal='kde')
-# plt.tight_layout()
-# plt.show()
-
-# combine train_df to features_df
-# train_df_new = features_df.join(train_df['Weekly_Sales'], how='inner')
-#
-# print(train_df_new.shape)
