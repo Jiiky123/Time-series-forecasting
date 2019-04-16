@@ -22,21 +22,22 @@ prediction_df.index = pd.to_datetime(prediction_df.index, format="%Y/%m/%d")
 
 # SARIMAX AGG. SALES FORECAST -----------------------------------------------
 
-# test & train
-train_df = prediction_df.iloc[:80]
-test_df = prediction_df.iloc[80:len(prediction_df)]
+# test & train AGG SALES
+train_length = 80  # weekly data
+train_df = prediction_df.iloc[:train_length]
+test_df = prediction_df.iloc[train_length:len(prediction_df)]
 
 train_series = train_df
 test_series = test_df
 
 
-def plot_acf_pacf():  # ACF and PACF residual plots
-    plot_acf(prediction_df, lags=52)
-    plot_pacf(prediction_df, lags=52)
+def plot_acf_pacf(lags):  # ACF and PACF residual plots
+    plot_acf(prediction_df, lags=lags)
+    plot_pacf(prediction_df, lags=lags)
     plt.show()
 
 
-def SARIMAX_fit():  # fit sarimax model
+def SARIMAX_fit():  # fit sarimax model (p,d,q)(P,D,Q,m)
     model = SARIMAX(train_series, order=(0, 1, 0), seasonal_order=(1, 0, 0, 52))
     model_fit = model.fit(disp=False)
     yhat = model_fit.predict(len(train_series), len(prediction_df)-1, typ='levels')
@@ -53,19 +54,22 @@ def plot_result():  # out of sample result
 
 # FB PROPHET AGG. SALES FORECAST -----------------------------------------------
 def Prophet_fit():
+    # include arbitrary index
     train_series = train_series.reset_index()
 
     # fit prophet model
-    m = Prophet(yearly_seasonality=30)
+    yearly_seasonality = 30
+    m = Prophet(yearly_seasonality=yearly_seasonality)
     m.fit(train_series)
 
     # make prediction dataframe
-    future = m.make_future_dataframe(freq='W', periods=len(prediction_df)-80)
+    future = m.make_future_dataframe(freq='W', periods=len(prediction_df)-train_length)
     forecast = m.predict(future)
 
     # plot results
     fig1 = m.plot(forecast)
     plt.plot(test_series, c='black', alpha=0.5)
+    # vertical line at cutoff
     plt.axvline(x=train_series.iloc[-1, 0], c='r')
     plt.show()
 
@@ -84,10 +88,10 @@ stores_df = stores_df.pivot_table(values='Weekly_Sales',
                                   index=stores_df.index, columns='Store')
 stores_df.index = pd.to_datetime(stores_df.index, format="%Y/%m/%d")
 
-stores_train = stores_df.iloc[:102]
+stores_train = stores_df.iloc[:train_length]
 stores_train.index = pd.DatetimeIndex(stores_train.index.values,
                                       freq=stores_train.index.inferred_freq)
-stores_test = stores_df.iloc[102:len(stores_df)]
+stores_test = stores_df.iloc[train_length:len(stores_df)]
 
 # for prophet
 stores_train_prophet = stores_train
@@ -98,18 +102,12 @@ stores_train_prophet.columns = ['y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
                                 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
                                 'y', 'y', 'y', 'y']
 
+# create arbitrary index for prophet
 stores_train_prophet = stores_train_prophet.reset_index()
-stores_train_prophet_1 = stores_train_prophet.iloc[:, [0, 1]]
-print(stores_train_prophet_1.head(10))
-
-
-def plot_stores():
-    stores_df.plot()
-    plt.show()
 
 
 def predict_all_stores():
-    predicted_stores = pd.DataFrame(columns=range(1, 46))
+    predicted_stores = pd.DataFrame(columns=range(1, len(stores_df.columns)+1))
     for store in range(1, len(stores_df.columns)+1):
         model = SARIMAX(stores_train.iloc[:, store-1], order=(0, 1, 0),
                         seasonal_order=(1, 0, 0, 52))
@@ -163,7 +161,7 @@ def mse_sarima():  # mean square errors
 # FB PROPHET STORE SALES FORECAST ----------------------------------------------
 
 def predict_all_stores_prophet():
-    predicted_stores_prophet = pd.DataFrame(columns=range(1, 46))
+    predicted_stores_prophet = pd.DataFrame(columns=range(1, len(stores_train_prophet.columns)+1))
     for store in range(0, 1):
         m = Prophet(yearly_seasonality=30)
         m.fit(stores_train_prophet.iloc[:, store])
