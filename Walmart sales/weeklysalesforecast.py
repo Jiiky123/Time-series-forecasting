@@ -96,6 +96,8 @@ stores_test = stores_df.iloc[train_length:len(stores_df)]
 # for prophet
 stores_train_prophet = stores_train
 stores_train_prophet.index.name = 'ds'
+
+# naming columns (needed for fb prophet) - find a better solution?
 stores_train_prophet.columns = ['y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
                                 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
                                 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
