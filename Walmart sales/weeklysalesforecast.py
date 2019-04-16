@@ -8,6 +8,7 @@ from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from fbprophet import Prophet
 from sklearn.metrics import mean_squared_error
+from statistics import mean
 import os
 os.chdir('D:/PythonProjektATOM/Git/Repositories/Time-series-forecasting/Walmart sales/')
 
@@ -88,6 +89,19 @@ stores_train.index = pd.DatetimeIndex(stores_train.index.values,
                                       freq=stores_train.index.inferred_freq)
 stores_test = stores_df.iloc[102:len(stores_df)]
 
+# for prophet
+stores_train_prophet = stores_train
+stores_train_prophet.index.name = 'ds'
+stores_train_prophet.columns = ['y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
+                                'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
+                                'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
+                                'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
+                                'y', 'y', 'y', 'y']
+
+stores_train_prophet = stores_train_prophet.reset_index()
+stores_train_prophet_1 = stores_train_prophet.iloc[:, [0, 1]]
+print(stores_train_prophet_1.head(10))
+
 
 def plot_stores():
     stores_df.plot()
@@ -106,9 +120,6 @@ def predict_all_stores():
         print(store, '/', len(stores_df.columns+1))
     predicted_stores.to_csv('predicted_stores.csv')
     print('saved')
-
-
-predict_all_stores()
 
 
 # ------------------------------------------------------------------------------
@@ -134,12 +145,33 @@ def plot_predictions_vs_actual():  # plotterinho
         plt.show()
 
 
-plot_predictions_vs_actual()
-print(predictions)
-print(stores_test)
-
-
-# plot_predictions_vs_actual()
+def mse_sarima():  # mean square errors
+    MSE = []
+    for store in range(len(predictions.columns)):
+        error = mean_squared_error(
+            stores_test.iloc[:, store], predictions.iloc[:, store])
+        MSE.append(error)
+        print(store+1, ' MSE: ', error)
+    MSE = pd.DataFrame(MSE)
+    MSE.index = [i for i in range(1, 46)]
+    print(MSE)
+    print('MEAN MSE SARIMA-MODEL: ', MSE[0].mean())
 
 
 # --------------------------------------------------------------------------------
+
+# FB PROPHET STORE SALES FORECAST ----------------------------------------------
+
+def predict_all_stores_prophet():
+    predicted_stores_prophet = pd.DataFrame(columns=range(1, 46))
+    for store in range(0, 1):
+        m = Prophet(yearly_seasonality=30)
+        m.fit(stores_train_prophet.iloc[:, store])
+        future = m.make_future_dataframe(freq='W', periods=len(stores_df)-len(stores_train_prophet))
+        forecast = m.predict(future)
+        predicted_stores_prophet[store] = forecast['yhat']
+    predicted_stores_prophet.to_csv('predicted_stores_prophet.csv')
+    print('saved')
+
+
+predict_all_stores_prophet()
