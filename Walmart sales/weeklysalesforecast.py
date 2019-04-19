@@ -98,11 +98,8 @@ stores_train_prophet = stores_train
 stores_train_prophet.index.name = 'ds'
 
 # naming columns (needed for fb prophet) - find a better solution?
-stores_train_prophet.columns = ['y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
-                                'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
-                                'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
-                                'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y',
-                                'y', 'y', 'y', 'y']
+stores_train_prophet.columns = ['y' for i in stores_train_prophet.columns]
+print(stores_train_prophet.head())
 
 # create arbitrary index for prophet
 stores_train_prophet = stores_train_prophet.reset_index()
