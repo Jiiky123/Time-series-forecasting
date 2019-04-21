@@ -6,6 +6,7 @@ from statsmodels.graphics.tsaplots import plot_pacf
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.tsa.arima_model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from fbprophet import Prophet
 from sklearn.metrics import mean_squared_error
 from statistics import mean
@@ -32,12 +33,14 @@ test_series = test_df
 
 
 def plot_acf_pacf(lags):  # ACF and PACF residual plots
+
     plot_acf(prediction_df, lags=lags)
     plot_pacf(prediction_df, lags=lags)
     plt.show()
 
 
 def SARIMAX_fit():  # fit sarimax model (p,d,q)(P,D,Q,m)
+
     model = SARIMAX(train_series, order=(0, 1, 0), seasonal_order=(1, 0, 0, 52))
     model_fit = model.fit(disp=False)
     yhat = model_fit.predict(len(train_series), len(prediction_df)-1, typ='levels')
@@ -46,6 +49,7 @@ def SARIMAX_fit():  # fit sarimax model (p,d,q)(P,D,Q,m)
 
 
 def plot_result():  # out of sample result
+
     plt.plot(test_series)
     plt.plot(yhat, color='red')
     plt.show()
@@ -99,13 +103,13 @@ stores_train_prophet.index.name = 'ds'
 
 # naming columns (needed for fb prophet) - find a better solution?
 stores_train_prophet.columns = ['y' for i in stores_train_prophet.columns]
-print(stores_train_prophet.head())
 
 # create arbitrary index for prophet
 stores_train_prophet = stores_train_prophet.reset_index()
 
 
 def predict_all_stores():
+
     predicted_stores = pd.DataFrame(columns=range(1, len(stores_df.columns)+1))
     for store in range(1, len(stores_df.columns)+1):
         model = SARIMAX(stores_train.iloc[:, store-1], order=(0, 1, 0),
@@ -115,6 +119,7 @@ def predict_all_stores():
                                               len(stores_df)-1, typ='levels'))
         predicted_stores[store] = yhat[0]
         print(store, '/', len(stores_df.columns+1))
+
     predicted_stores.to_csv('predicted_stores.csv')
     print('saved')
 
@@ -135,6 +140,7 @@ predictions_best_perf.index = np.arange(1, len(predictions_best_perf)+1)
 
 
 def plot_predictions_vs_actual_sarima():  # plotterinho
+
     for i in range(len(predictions.columns)):
         plt.plot(predictions.iloc[:, i], c='r')
         plt.plot(stores_test.iloc[:, i], c='b')
@@ -142,16 +148,17 @@ def plot_predictions_vs_actual_sarima():  # plotterinho
 
 
 def mse_sarima():  # mean square errors
+
     MSE = []
     for store in range(len(predictions.columns)):
         error = mean_squared_error(
             stores_test.iloc[:, store], predictions.iloc[:, store])
         MSE.append(error)
-        print(store+1, ' MSE: ', error)
+        # print(store+1, ' MSE: ', error)
     MSE = pd.DataFrame(MSE)
     MSE.index = [i for i in range(1, 46)]
-    print(MSE)
-    print('MEAN MSE SARIMA-MODEL: ', MSE.mean())
+    # print(MSE)
+    print('MSE SARIMA-MODEL: ', MSE.mean())
 
 
 # --------------------------------------------------------------------------------
@@ -159,6 +166,7 @@ def mse_sarima():  # mean square errors
 # FB PROPHET STORE SALES FORECAST ----------------------------------------------
 
 def predict_all_stores_prophet():
+
     predicted_stores_prophet = pd.DataFrame(columns=range(0, len(stores_train_prophet.columns)))
     for store in range(1, len(stores_train_prophet.columns)):
         m = Prophet(yearly_seasonality=15)
@@ -167,21 +175,21 @@ def predict_all_stores_prophet():
             freq='W', periods=len(stores_df)-len(stores_train_prophet), include_history=False)
         forecast = m.predict(future)
         predicted_stores_prophet[store] = forecast['yhat']
-        print(predicted_stores_prophet[store].head(5))
+
     predicted_stores_prophet.to_csv('predicted_stores_prophet.csv')
     return predicted_stores_prophet
     print('saved')
 
 
+# read in predicted data from csv and assigt new index (saved above)
 predictions_prophet = pd.read_csv('predicted_stores_prophet.csv', sep=',', index_col=0)
 predictions_prophet.drop(columns='0', inplace=True)
 predictions_prophet.index.name = 'Date'
 predictions_prophet.index = stores_test.index
-print(predictions_prophet.head())
-print(stores_test.head())
 
 
 def plot_predictions_vs_actual_prophet():  # plotterinho
+
     for i in range(len(predictions_prophet.columns)):
         plt.plot(predictions_prophet.iloc[:, i], c='r')
         plt.plot(stores_test.iloc[:, i], c='b')
@@ -189,27 +197,66 @@ def plot_predictions_vs_actual_prophet():  # plotterinho
 
 
 def mse_prophet():  # mean square errors
+
     MSE = []
     for store in range(0, len(predictions_prophet.columns)):
         error = mean_squared_error(
             stores_test.iloc[:, store], predictions_prophet.iloc[:, store])
         MSE.append(error)
-        print(store+1, ' MSE: ', error)
+        # print(store+1, ' MSE: ', error)
     MSE = pd.DataFrame(MSE)
     MSE.index = [i for i in range(1, 46)]
-    print(MSE)
-    print('MEAN MSE PROPHET-MODEL: ', MSE.mean())
+    # print(MSE)
+    print('MSE PROPHET-MODEL: ', MSE.mean())
 
 
-def plot_predictions_vs_actual_both():  # plotterinho
+# HWES STORE SALES FORECAST --------------------------------------------------
+# create and fit model
+def predict_all_stores_hwes():
+
+    predicted_stores_hwes = pd.DataFrame(columns=range(1, len(stores_train.columns)))
+    for store in range(0, len(stores_train.columns)):
+        hwes_model = ExponentialSmoothing(
+            stores_train.iloc[:, store], seasonal='add', seasonal_periods=52)
+        hwes_fit = hwes_model.fit()
+        hwes_yhat = hwes_fit.predict(len(stores_train), len(stores_df)-1)
+        predicted_stores_hwes[store+1] = hwes_yhat
+        print(predicted_stores_hwes[store+1])
+
+    predicted_stores_hwes.to_csv('predictions_hwes.csv')
+
+
+predictions_hwes = pd.read_csv('predictions_hwes.csv', sep=',', index_col=0)
+predictions_hwes.index = stores_test.index
+
+
+def mse_hwes():  # mean square errors
+
+    MSE = []
+    for store in range(0, len(predictions_hwes.columns)):
+        error = mean_squared_error(
+            stores_test.iloc[:, store], predictions_hwes.iloc[:, store])
+        MSE.append(error)
+        # print(store+1, ' MSE: ', error)
+    MSE = pd.DataFrame(MSE)
+    MSE.index = [i for i in range(1, 46)]
+    # print(MSE)
+    print('MSE HWES-MODEL: ', MSE.mean())
+
+
+# PLOT ALL MODELS VS ACTUAL -------------------------------------------------
+def plot_predictions_all_models():  # plotterinho
+
     for i in range(len(predictions_prophet.columns)):
         plt.figure(figsize=(12, 8))
         plt.plot(predictions.iloc[:, i], c='g', label='SARIMA')
         plt.plot(predictions_prophet.iloc[:, i], c='r', label='PROPHET')
+        plt.plot(predictions_hwes.iloc[:, i], c='y', label='HWES')
         plt.plot(stores_test.iloc[:, i], c='b', label='ACTUAL')
         plt.legend()
         plt.show()
 
 
-print(predictions.shape)
-plot_predictions_vs_actual_both()
+mse_hwes()
+mse_sarima()
+mse_prophet()
