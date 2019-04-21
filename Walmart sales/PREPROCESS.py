@@ -3,9 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 import os
+import sys
 from statsmodels.tsa.seasonal import seasonal_decompose
 from pandas.plotting import scatter_matrix
 os.chdir('D:/PythonProjektATOM/Git/Repositories/Time-series-forecasting/Walmart sales/')
+
+
+# EXPLORE & CLEAN DATA-------------------------------------------------------
 
 # import csv's
 features_df = pd.read_csv('features.csv', sep=',')
@@ -15,6 +19,8 @@ stores_df = pd.read_csv('stores.csv', sep=',')
 
 # drop columns
 features_df = features_df.drop(columns=['Fuel_Price', 'CPI'])
+
+# INSPECT
 
 
 def df_info():  # inspect df's
@@ -45,6 +51,7 @@ def df_na():  # NA-values
     print(stores_df.isna().sum())
 
 
+# CLEAN
 # convert df's to date-time
 features_df['Date'] = pd.to_datetime(features_df['Date'], format="%Y/%m/%d")
 train_df['Date'] = pd.to_datetime(train_df['Date'], format="%Y/%m/%d")
@@ -54,7 +61,6 @@ test_df['Date'] = pd.to_datetime(test_df['Date'], format="%Y/%m/%d")
 merged_feat_train = pd.merge(train_df, features_df, on=['Date', 'Store'])
 merged_feat_train = merged_feat_train.drop(columns=['IsHoliday_x', 'IsHoliday_y',
                                                     'MarkDown1', 'MarkDown2', 'MarkDown3', 'MarkDown4', 'MarkDown5'])
-merged_feat_train = merged_feat_train.iloc[:50000]
 
 
 # set date as index
@@ -68,9 +74,13 @@ features_df.sort_values('Date', inplace=True)
 train_df.sort_values('Date', inplace=True)
 test_df.sort_values('Date', inplace=True)
 
-# create train test df for prediction
+# create train test df for prediction (n x 1)
 prediction_df = train_df.groupby('Date').sum().sort_values('Date')
 prediction_df = prediction_df['Weekly_Sales']
+
+print(sys.getsizeof(merged_feat_train))
+
+# QUICK OVERVIEW
 
 
 def print_shape():
@@ -90,17 +100,3 @@ def quick_analysis():  # quick dirty visual analysis
 def plot_hist():
     merged_feat_train.hist()
     plt.show()
-
-
-print(merged_feat_train.info())
-plot_hist()
-# merged_feat_train.to_csv('merged_feat_train.csv')
-
-
-# def store_sales_plot(start, end):  # weekly sales by store
-#     for store in range(start, end):
-#         store_sales = train_df[train_df['Store'] == store]
-#         store_sales = store_sales.resample('W-MON').sum()
-#         plt.plot(store_sales.index, store_sales.Weekly_Sales)
-#
-#     plt.show()
