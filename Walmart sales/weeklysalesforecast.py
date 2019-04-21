@@ -132,10 +132,9 @@ predictions_best_perf = pd.Series([(predictions.iloc[-1, store]-predictions.iloc
                                    predictions.iloc[0, store]
                                    for store in range(len(predictions.columns))])
 predictions_best_perf.index = np.arange(1, len(predictions_best_perf)+1)
-print(predictions_best_perf.sort_values())
 
 
-def plot_predictions_vs_actual():  # plotterinho
+def plot_predictions_vs_actual_sarima():  # plotterinho
     for i in range(len(predictions.columns)):
         plt.plot(predictions.iloc[:, i], c='r')
         plt.plot(stores_test.iloc[:, i], c='b')
@@ -152,7 +151,7 @@ def mse_sarima():  # mean square errors
     MSE = pd.DataFrame(MSE)
     MSE.index = [i for i in range(1, 46)]
     print(MSE)
-    print('MEAN MSE SARIMA-MODEL: ', MSE[0].mean())
+    print('MEAN MSE SARIMA-MODEL: ', MSE.mean())
 
 
 # --------------------------------------------------------------------------------
@@ -160,10 +159,10 @@ def mse_sarima():  # mean square errors
 # FB PROPHET STORE SALES FORECAST ----------------------------------------------
 
 def predict_all_stores_prophet():
-    predicted_stores_prophet = pd.DataFrame(columns=range(1, len(stores_train_prophet.columns)+1))
-    for store in range(1, len(stores_train_prophet.columns)-1):
-        m = Prophet(yearly_seasonality=30)
-        m.fit(stores_train_prophet.iloc[:, [0, store+1]])
+    predicted_stores_prophet = pd.DataFrame(columns=range(0, len(stores_train_prophet.columns)))
+    for store in range(1, len(stores_train_prophet.columns)):
+        m = Prophet(yearly_seasonality=15)
+        m.fit(stores_train_prophet.iloc[:, [0, store]])
         future = m.make_future_dataframe(
             freq='W', periods=len(stores_df)-len(stores_train_prophet), include_history=False)
         forecast = m.predict(future)
@@ -175,16 +174,42 @@ def predict_all_stores_prophet():
 
 
 predictions_prophet = pd.read_csv('predicted_stores_prophet.csv', sep=',', index_col=0)
-# predictions_prophet = predictions_prophet.reindex_like(stores_test)
-print(predictions_prophet.shape)
-print(stores_test.shape)
+predictions_prophet.drop(columns='0', inplace=True)
+predictions_prophet.index.name = 'Date'
+predictions_prophet.index = stores_test.index
+print(predictions_prophet.head())
+print(stores_test.head())
 
 
-def plot_predictions_vs_actual():  # plotterinho
+def plot_predictions_vs_actual_prophet():  # plotterinho
     for i in range(len(predictions_prophet.columns)):
         plt.plot(predictions_prophet.iloc[:, i], c='r')
         plt.plot(stores_test.iloc[:, i], c='b')
         plt.show()
 
 
-# plot_predictions_vs_actual()
+def mse_prophet():  # mean square errors
+    MSE = []
+    for store in range(0, len(predictions_prophet.columns)):
+        error = mean_squared_error(
+            stores_test.iloc[:, store], predictions_prophet.iloc[:, store])
+        MSE.append(error)
+        print(store+1, ' MSE: ', error)
+    MSE = pd.DataFrame(MSE)
+    MSE.index = [i for i in range(1, 46)]
+    print(MSE)
+    print('MEAN MSE PROPHET-MODEL: ', MSE.mean())
+
+
+def plot_predictions_vs_actual_both():  # plotterinho
+    for i in range(len(predictions_prophet.columns)):
+        plt.figure(figsize=(12, 8))
+        plt.plot(predictions.iloc[:, i], c='g', label='SARIMA')
+        plt.plot(predictions_prophet.iloc[:, i], c='r', label='PROPHET')
+        plt.plot(stores_test.iloc[:, i], c='b', label='ACTUAL')
+        plt.legend()
+        plt.show()
+
+
+print(predictions.shape)
+plot_predictions_vs_actual_both()
