@@ -260,7 +260,7 @@ def plot_predictions_all_models():  # plotterinho
         plt.show()
 
 
-plot_predictions_all_models()
+# plot_predictions_all_models()
 
 # mse_hwes()
 # mse_sarima()
