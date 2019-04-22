@@ -248,7 +248,6 @@ def mse_hwes():  # mean square errors
 def plot_predictions_all_models():  # plotterinho
 
     for i in range(len(predictions_prophet.columns)):
-        plt.figure(figsize=(12, 8))
         plt.plot(predictions.iloc[:, i], c='g', label='SARIMA')
         plt.plot(predictions_prophet.iloc[:, i], c='r', label='PROPHET')
         plt.plot(predictions_hwes.iloc[:, i], c='y', label='HWES')
@@ -256,22 +255,12 @@ def plot_predictions_all_models():  # plotterinho
         plt.axvline(x=stores_df.index[train_length],
                     linestyle='--', color='r', label='forecast cutoff')
         plt.legend()
+        wm = plt.get_current_fig_manager()
+        wm.window.state('zoomed')
         plt.show()
 
 
 plot_predictions_all_models()
-# help(ExponentialSmoothing)
-#
-# hwes_model = ExponentialSmoothing(
-#     stores_train.iloc[:, 1], seasonal='add', seasonal_periods=52)
-# hwes_fit = hwes_model.fit()
-# hwes_yhat = hwes_fit.predict(len(stores_train), len(stores_df)-1)
-#
-# plt.plot(hwes_yhat, c='y', label='HWES')
-# plt.plot(stores_df.iloc[:, 1], c='b', label='ACTUAL')
-# plt.legend()
-# plt.show()
-
 
 # mse_hwes()
 # mse_sarima()
