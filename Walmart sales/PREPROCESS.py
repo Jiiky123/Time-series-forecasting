@@ -9,7 +9,7 @@ from pandas.plotting import scatter_matrix
 os.chdir('D:/PythonProjektATOM/Git/Repositories/Time-series-forecasting/Walmart sales/')
 
 
-# EXPLORE & CLEAN DATA-------------------------------------------------------
+## EXPLORE & CLEAN DATA ########################################################
 
 # import csv's
 features_df = pd.read_csv('features.csv', sep=',')
@@ -19,8 +19,6 @@ stores_df = pd.read_csv('stores.csv', sep=',')
 
 # drop columns
 features_df = features_df.drop(columns=['Fuel_Price', 'CPI'])
-
-# INSPECT
 
 
 def df_info():  # inspect df's
@@ -51,7 +49,6 @@ def df_na():  # NA-values
     print(stores_df.isna().sum())
 
 
-# CLEAN
 # convert df's to date-time
 features_df['Date'] = pd.to_datetime(features_df['Date'], format="%Y/%m/%d")
 train_df['Date'] = pd.to_datetime(train_df['Date'], format="%Y/%m/%d")
@@ -60,7 +57,9 @@ test_df['Date'] = pd.to_datetime(test_df['Date'], format="%Y/%m/%d")
 # merged dataset on date and store columns
 merged_feat_train = pd.merge(train_df, features_df, on=['Date', 'Store'])
 merged_feat_train = merged_feat_train.drop(columns=['IsHoliday_x', 'IsHoliday_y',
-                                                    'MarkDown1', 'MarkDown2', 'MarkDown3', 'MarkDown4', 'MarkDown5'])
+                                                    'MarkDown1', 'MarkDown2',
+                                                    'MarkDown3', 'MarkDown4',
+                                                    'MarkDown5'])
 
 
 # set date as index
@@ -80,10 +79,8 @@ prediction_df = prediction_df['Weekly_Sales']
 
 print(sys.getsizeof(merged_feat_train))
 
-# QUICK OVERVIEW
 
-
-def print_shape():
+def print_shape():  # QUICK OVERVIEW
     print(merged_feat_train.shape)
     print(prediction_df.shape)
     print(features_df.shape)

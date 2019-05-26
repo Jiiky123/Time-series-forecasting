@@ -21,7 +21,7 @@ prediction_df.columns = ['y']
 prediction_df.index = pd.to_datetime(prediction_df.index, format="%Y/%m/%d")
 
 
-# SARIMAX AGG. SALES FORECAST -----------------------------------------------
+# SARIMAX AGG. SALES FORECAST
 
 # test & train AGG SALES
 train_length = 80  # weekly data
@@ -53,10 +53,9 @@ def plot_result():  # out of sample result
     plt.plot(test_series)
     plt.plot(yhat, color='red')
     plt.show()
-# -----------------------------------------------------------------------------
 
 
-# FB PROPHET AGG. SALES FORECAST -----------------------------------------------
+# FB PROPHET AGG. SALES FORECAST
 def Prophet_fit():
     # include arbitrary index
     train_series = train_series.reset_index()
@@ -77,9 +76,8 @@ def Prophet_fit():
     plt.axvline(x=train_series.iloc[-1, 0], c='r')
     plt.show()
 
-# ----------------------------------------------------------------------------
 
-# SALES BY STORE AND DEPARTMENT -------------------------------------------
+# SALES BY STORE AND DEPARTMENT
 
 
 # importing merged_feat_train dataset which includes store/dept sales
@@ -124,10 +122,7 @@ def predict_all_stores():
     print('saved')
 
 
-# ------------------------------------------------------------------------------
-
-# PLOT SARIMA PRED VS ACTUAL ----------------------------------------------
-
+# PLOT SARIMA PRED VS ACTUAL
 predictions = pd.read_csv('predicted_stores.csv', sep=',', index_col=0)
 # predictions = predictions.rename(columns={'0': '45'})
 predictions.index = pd.to_datetime(predictions.index, format="%Y/%m/%d")
@@ -161,9 +156,7 @@ def mse_sarima():  # mean square errors
     print('MSE SARIMA-MODEL: ', MSE.mean())
 
 
-# --------------------------------------------------------------------------------
-
-# FB PROPHET STORE SALES FORECAST ----------------------------------------------
+# FB PROPHET STORE SALES FORECAST
 
 def predict_all_stores_prophet():
 
@@ -210,7 +203,7 @@ def mse_prophet():  # mean square errors
     print('MSE PROPHET-MODEL: ', MSE.mean())
 
 
-# HWES STORE SALES FORECAST --------------------------------------------------
+# HWES STORE SALES FORECAST
 # create and fit model
 def predict_all_stores_hwes():
 
@@ -244,7 +237,7 @@ def mse_hwes():  # mean square errors
     print('MSE HWES-MODEL: ', MSE.mean())
 
 
-# PLOT ALL MODELS VS ACTUAL -------------------------------------------------
+# PLOT ALL MODELS VS ACTUAL
 def plot_predictions_all_models():  # plotterinho
 
     for i in range(len(predictions_prophet.columns)):
@@ -258,10 +251,3 @@ def plot_predictions_all_models():  # plotterinho
         wm = plt.get_current_fig_manager()
         wm.window.state('zoomed')
         plt.show()
-
-
-# plot_predictions_all_models()
-
-# mse_hwes()
-# mse_sarima()
-# mse_prophet()
