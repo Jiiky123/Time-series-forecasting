@@ -11,11 +11,13 @@ from fbprophet import Prophet
 from sklearn.metrics import mean_squared_error
 from statistics import mean
 import os
-os.chdir('D:/PythonProjektATOM/Git/Repositories/Time-series-forecasting/Walmart sales/')
+
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 # importing prediction_df whick includes aggregated sales
 prediction_df = pd.read_csv('prediction_df.csv', sep=',', header=None, index_col=0)
-
 prediction_df.index.name = 'ds'
 prediction_df.columns = ['y']
 prediction_df.index = pd.to_datetime(prediction_df.index, format="%Y/%m/%d")
@@ -251,3 +253,6 @@ def plot_predictions_all_models():  # plotterinho
         wm = plt.get_current_fig_manager()
         wm.window.state('zoomed')
         plt.show()
+
+
+plot_predictions_all_models()
